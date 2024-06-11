@@ -3,8 +3,10 @@ package machado.maria.gabriela.galeria;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -37,9 +39,22 @@ public class PhotoActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
+        //cria opcoes de menu
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_tb, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item){
+        //sera chamado sempre que um item da toolbar for selecionado
+        switch (item.getItemId()){
+            case R.id.opShare: //caso a camera tenha sido clicada
+                sharePhoto(); //sera executado o codigo de compartilhar foto
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

@@ -3,8 +3,10 @@ package machado.maria.gabriela.galeria;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
@@ -31,9 +33,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
+        //cria opcoes de menu
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_tb, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        //sera chamado sempre que um item da toolbar for selecionado
+        switch (item.getItemId()){
+            case R.id.opCamera: //caso a camera tenha sido clicada
+                dispatchTakePictureIntent(); //abre a camera do celular
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
