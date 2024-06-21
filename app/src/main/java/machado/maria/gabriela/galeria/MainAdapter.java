@@ -28,15 +28,15 @@ public class MainAdapter extends RecyclerView.Adapter {
         LayoutInflater inflater = LayoutInflater.from(mainActivity); //cria elemento da interface
         View v = inflater.inflate(R.layout.list_item, parent, false);
         return new MyViewHolder(v);
-
     }
 
     @Override
     public int getItemCount() {
-        return 0;
+        return photos.size();
     }
 
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, final int position){
+        //preenche o ImageView com a foto correspodente
         ImageView imPhoto = holder.itemView.findViewById(R.id.imItem);
         int w = (int) mainActivity.getResources().getDimension(R.dimen.itemWidth);
         int h = (int) mainActivity.getResources().getDimension(R.dimen.itemHeight);
