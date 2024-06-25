@@ -1,9 +1,12 @@
 package machado.maria.gabriela.galeria;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -16,10 +19,13 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class PhotoActivity extends AppCompatActivity {
 
+    String photoPath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_photo);
 
         //seta tbPhoto como ActionBar padrao
         Toolbar toolbar = findViewById(R.id.tbPhoto);
@@ -29,12 +35,17 @@ public class PhotoActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        setContentView(R.layout.activity_photo);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        Intent i = getIntent();
+        photoPath = i.getStringExtra("photo_path");
+        Bitmap bitmap = Util.getBitmap(photoPath);
+        ImageView imPhoto = findViewById(R.id.imPhoto);
+        imPhoto.setImageBitmap(bitmap);
     }
 
     @Override
