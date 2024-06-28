@@ -1,8 +1,13 @@
 package machado.maria.gabriela.galeria;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -16,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -33,6 +39,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     static int RESULT_TAKE_PICTURE = 1;
+    static int RESULT_REQUEST_PERMISSION = 2;
     String currentPhotoPath;
     List<String> photos = new ArrayList<>();
     MainAdapter mainAdapter;
@@ -67,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.tbMain);
         setSupportActionBar(toolbar); //seta tbMain como ActionBar padrao
+
+        List<String> permissions = new ArrayList<>(); //pedindo permissao pra usar a camera
+        permissions.add(Manifest.permission.CAMERA);
+        checkForPermissions(permissions);
     }
 
     @Override
@@ -81,13 +92,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         //sera chamado sempre que um item da toolbar for selecionado
-        switch (item.getItemId()){
-            case R.id.opCamera: //caso a camera tenha sido clicada
-                dispatchTakePictureIntent(); //abre a camera do celular
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.opCamera) { //caso a camera tenha sido clicada
+            dispatchTakePictureIntent(); //abre a camera do celular
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     public void startPhotoActivity(String photoPath){
@@ -101,15 +110,16 @@ public class MainActivity extends AppCompatActivity {
         //dispara o app de camera
         File f = null;
         try {
-            f = createImageFile();
-        } catch (IOException e){
+            f = createImageFile(); //o arquivo que guarda a imagem
+        } catch (IOException e){ //caso o arquivo nao possa ser criado, eh exibida essa mensagem
             Toast.makeText(MainActivity.this, "Não foi possível criar o arquivo", Toast.LENGTH_LONG).show();
             return;
         }
 
-        currentPhotoPath = f.getAbsolutePath();
+        currentPhotoPath = f.getAbsolutePath(); //local do arquivo de foto
 
         if(f != null) {
+            //se existir o arquivo da imagem, eh disparado o app camera
             Uri fUri = FileProvider.getUriForFile(MainActivity.this, "machado.maria.gabriela.galeria.fileprovider", f);
             Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             i.putExtra(MediaStore.EXTRA_OUTPUT, fUri);
@@ -130,13 +140,64 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == RESULT_TAKE_PICTURE){
-            if(resultCode == Activity.RESULT_OK){
-                photos.add(currentPhotoPath);
-                mainAdapter.notifyItemInserted(photos.size()-1);
+            if(resultCode == Activity.RESULT_OK){ //caso a foto tenha sido tirada
+                photos.add(currentPhotoPath); //ela eh adicionada a lista de fotos
+                mainAdapter.notifyItemInserted(photos.size()-1); //notifica MainAdapter
             }
             else {
+                //se a foto nao foi tirada, o arquivo f (feito para armazenar a foto) eh excluido
                 File f =  new File(currentPhotoPath);
                 f.delete();
+            }
+        }
+    }
+
+    private void checkForPermissions(List<String> permissions){
+        List<String> permissionsNotGranted = new ArrayList<>();
+        for(String permission : permissions){
+            if(!hasPermission(permission)){ //caso o usuario nao tenha confirmado permissao
+                permissionsNotGranted.add(permission); //a permissao negada eh posta num array
+            }
+        }
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(permissionsNotGranted.size() > 0){
+                //se houverem permissoes negadas, essas sao requisitadas
+                requestPermissions(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), RESULT_REQUEST_PERMISSION);
+            }
+        }
+    }
+
+    private boolean hasPermission(String permission){
+        //verifica se determinada permissao foi concedida
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            return ActivityCompat.checkSelfPermission(MainActivity.this, permission) == PackageManager.PERMISSION_GRANTED;
+        }
+        return false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+        //checa se todas as permissoes foram aceitas ou nao
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        final List<String> permissionsRejected = new ArrayList<>();
+        if(requestCode == RESULT_REQUEST_PERMISSION){
+            for(String permission : permissions){ //checa permissao por permissao
+                if(!hasPermission(permission)){
+                    permissionsRejected.add(permission);
+                }
+            }
+        }
+        if(permissionsRejected.size() > 0){
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                if(shouldShowRequestPermissionRationale(permissionsRejected.get(0)));{
+                    //caso nao tenha uma permissao necessaria pro sistema, eh exibida a msg abaixo
+                    new AlertDialog.Builder(MainActivity.this).setMessage("Para usar esse app, é preciso conceder essas permissões").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            requestPermissions(permissionsRejected.toArray(new String[permissionsRejected.size()]), RESULT_REQUEST_PERMISSION);
+                        }
+                    }).create().show();
+                }
             }
         }
     }

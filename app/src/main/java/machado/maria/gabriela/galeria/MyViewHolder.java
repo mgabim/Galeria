@@ -7,6 +7,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class MyViewHolder extends RecyclerView.ViewHolder {
     public MyViewHolder(View v) {
-        super();
+        super(v);
     }
 }
